@@ -2,16 +2,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
 
 public class ForgotPasswordForm implements ActionListener{
     private JPanel panel;
     private JLabel message;
     private LoginForm loginForm;
+    private JTextField email_TextField;
+    private Authorization authorization;
 
-    public ForgotPasswordForm (JPanel panel, LoginForm loginForm) {
+    public ForgotPasswordForm (JPanel panel, LoginForm loginForm, Authorization authorization) {
         this.panel = panel;
         this.loginForm = loginForm;
+        this.authorization = authorization;
+        email_TextField = new JTextField();
     }
 
     public void addContent() {
@@ -23,7 +26,7 @@ public class ForgotPasswordForm implements ActionListener{
         panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
         
         JLabel email_label = new JLabel("Email: ");
-        JTextField email_TextField = new JTextField();
+        email_TextField.setPreferredSize(new Dimension(200, 30));
 
         JButton restPassword = new JButton("Rest Password");
         restPassword.setPreferredSize(new Dimension(200, 30));
@@ -53,7 +56,14 @@ public class ForgotPasswordForm implements ActionListener{
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if (command.equals("Rest Password")) {
-            message.setText("Password reset instructions sent to your email.");
+            String email = email_TextField.getText().trim();
+            if (email.isEmpty()) {
+                message.setText("Please enter yuor email address");
+            } else if (authorization.emailExists(email)) {
+                message.setText("Password reset instructions sent to your email.");
+            } else {
+                message.setText("Invalid email");
+            }
         } else if (command.equals("Back")) {
             loginForm.loginScreen();
         }
