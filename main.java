@@ -4,7 +4,14 @@ import java.util.HashMap;
 
 public class main {
     public static void main(String[] args) {
-        authorisation authorisation_data = new authorisation();
-        loginForm loginPage = new loginForm(authorisation_data.getLoginInfo());
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Authorization authorization_data = new Authorization();
+        LoginForm loginPage = new LoginForm(authorization_data.getLoginInfo());
     }
 }
