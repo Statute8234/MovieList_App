@@ -1,20 +1,18 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
-public class ForgotPasswordForm implements ActionListener{
+public class ForgotPasswordForm implements ActionListener {
     private JPanel panel;
     private JLabel message;
+    private JTextField username_TextField, email_TextField;
     private LoginForm loginForm;
-    private JTextField email_TextField;
     private Authorization authorization;
 
-    public ForgotPasswordForm (JPanel panel, LoginForm loginForm, Authorization authorization) {
+    public ForgotPasswordForm(JPanel panel, LoginForm loginForm, Authorization authorization) {
         this.panel = panel;
         this.loginForm = loginForm;
         this.authorization = authorization;
-        email_TextField = new JTextField();
     }
 
     public void addContent() {
@@ -22,50 +20,79 @@ public class ForgotPasswordForm implements ActionListener{
         panel.revalidate();
         panel.repaint();
 
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
-        
-        JLabel email_label = new JLabel("Email: ");
-        email_TextField.setPreferredSize(new Dimension(200, 30));
+        panel.setBackground(Color.LIGHT_GRAY);
+        panel.setLayout(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JButton restPassword = new JButton("Rest Password");
-        restPassword.setPreferredSize(new Dimension(200, 30));
-        restPassword.setFocusable(false);
-        restPassword.addActionListener(this);
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        JPanel submit_panel = new JPanel();
-        submit_panel.setAlignmentX(0);
-        submit_panel.setBackground(Color.LIGHT_GRAY);
-        JButton back_Button = new JButton("Back");
-        back_Button.setFocusable(false);
-        back_Button.addActionListener(this);
-        
+        JLabel title = new JLabel("Forgot Password");
+        title.setFont(new Font("Arial", Font.BOLD, 25));
+        gbc.gridx = 1;
+        formPanel.add(title, gbc);
+
+        JLabel[] labels = {new JLabel("Username:"), new JLabel("Email:")};
+        JTextField[] fields = {username_TextField = new JTextField(15), email_TextField = new JTextField(15)};
+
+        for (int i = 0; i < labels.length; i++) {
+            gbc.gridx = 0;
+            gbc.gridy = i + 1;
+            formPanel.add(labels[i], gbc);
+
+            gbc.gridx = 1;
+            formPanel.add(fields[i], gbc);
+        }
+
+        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        submitPanel.setBackground(Color.WHITE);
+        String[] buttonLabels = {"Submit", "Back"};
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setFocusable(false);
+            button.addActionListener(this);
+            submitPanel.add(button);
+        }
+
+        gbc.gridy++;
+        formPanel.add(submitPanel, gbc);
+
         message = new JLabel("");
-        message.setForeground(Color.YELLOW);
+        message.setForeground(Color.RED);
+        gbc.gridy++;
+        gbc.anchor = GridBagConstraints.CENTER;
+        formPanel.add(message, gbc);
 
-        submit_panel.add(back_Button);
-        submit_panel.add(message);
-
-        panel.add(email_label);
-        panel.add(email_TextField);
-        panel.add(restPassword);
-        panel.add(submit_panel);
+        panel.add(formPanel);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
-        if (command.equals("Rest Password")) {
-            String email = email_TextField.getText().trim();
-            if (email.isEmpty()) {
-                message.setText("Please enter yuor email address");
-            } else if (authorization.emailExists(email)) {
-                message.setText("Password reset instructions sent to your email.");
-            } else {
-                message.setText("Invalid email");
-            }
+        if (command.equals("Submit")) {
+            handleForgotPassword();
         } else if (command.equals("Back")) {
             loginForm.loginScreen();
         }
     }
-}   
+
+    private void handleForgotPassword() {
+        String username = username_TextField.getText().trim();
+        String email = email_TextField.getText().trim();
+
+        if (username.isEmpty() || email.isEmpty()) {
+            message.setText("All fields are required.");
+        } else if (!email.contains("@")) {
+            message.setText("Please enter a valid email address.");
+        } else if (!authorization.userExists(username)) {
+            message.setText("Username does not exist.");
+        } else {
+            // Handle forgot password logic
+            message.setText("Password reset link sent to " + email + ".");
+        }
+    }
+}
