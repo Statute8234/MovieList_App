@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.HashMap;
+import java.awt.event.*;
 
 public class LoginForm implements ActionListener{
     private JTextField username_TextField;
@@ -16,11 +14,8 @@ public class LoginForm implements ActionListener{
 
     public LoginForm(Authorization authorisation) {
         this.authorization = new Authorization();
-
         frame = new JFrame("Movie list App");
-        String iconPath = "assets\\film.png";
-        Image icon = new ImageIcon(LoginForm.class.getResource(iconPath)).getImage();
-        frame.setIconImage(icon);
+        frame.setIconImage(new ImageIcon(LoginForm.class.getResource("assets\\film.png")).getImage());
         frame.setLayout(new BorderLayout());
         // elements
         form_panel = new JPanel();
@@ -28,19 +23,25 @@ public class LoginForm implements ActionListener{
         signupForm = new SignupForm(form_panel, this, authorization);
         appScreen(frame);
         // close
-        frame.setSize(600, 600);
+        frame.setSize(700, 700);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
     private void appScreen(JFrame frame) {
         JPanel welcome_panel = new JPanel();
-        JLabel welcome_message = new JLabel("Welcome");
-        welcome_message.setFont(new Font("Arial", Font.BOLD, 25));
-        welcome_panel.add(welcome_message);
+        welcome_panel.setBackground(Color.WHITE);
+        welcome_panel.add(new JLabel("Login", SwingConstants.CENTER) {{
+            setFont(new Font("Arial", Font.BOLD, 25));
+        }});
         frame.add(welcome_panel, BorderLayout.NORTH);
         // Add form panel to the container
         JPanel container = new JPanel(new GridBagLayout());
+        container.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        container.setBackground(Color.WHITE);
+        form_panel.setBackground(Color.LIGHT_GRAY);
+        form_panel.setLayout(new GridBagLayout());
+        form_panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3, true));
         container.add(form_panel);
         frame.add(container, BorderLayout.CENTER);
         // Initialize login screen
@@ -52,46 +53,63 @@ public class LoginForm implements ActionListener{
         form_panel.revalidate();
         form_panel.repaint();
 
-        form_panel.setBackground(Color.lightGray);
-        form_panel.setLayout(new BoxLayout(form_panel, BoxLayout.Y_AXIS));
-        form_panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
 
         JLabel username_label = new JLabel("Username:");
-        username_TextField = new JTextField();
-        username_TextField.setPreferredSize(new Dimension(50, 30));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        form_panel.add(username_label, gbc);
+
+        username_TextField = new JTextField(15);
+        gbc.gridx = 1;
+        form_panel.add(username_TextField, gbc);
 
         JLabel password_label = new JLabel("Password:");
-        password_PasswordField = new JPasswordField();
-        password_PasswordField.setPreferredSize(new Dimension(200, 30));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        form_panel.add(password_label, gbc);
+
+        password_PasswordField = new JPasswordField(15);
+        gbc.gridx = 1;
+        form_panel.add(password_PasswordField, gbc);
 
         JButton forgot_password_Button = new JButton("Forgot Password");
-        forgot_password_Button.setPreferredSize(new Dimension(200, 30));
         forgot_password_Button.setFocusable(false);
         forgot_password_Button.addActionListener(this);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        form_panel.add(forgot_password_Button, gbc);
 
         JPanel submit_panel = new JPanel();
-        submit_panel.setAlignmentX(0);
+        submit_panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
         submit_panel.setBackground(Color.LIGHT_GRAY);
+
         JButton submit_Button = new JButton("Submit");
         submit_Button.setFocusable(false);
         submit_Button.addActionListener(this);
+        submit_panel.add(submit_Button);
+
         JButton signUp_Button = new JButton("Sign up");
         signUp_Button.setFocusable(false);
         signUp_Button.addActionListener(this);
-        
+        submit_panel.add(signUp_Button);
+
         message = new JLabel("");
         message.setForeground(Color.YELLOW);
 
-        submit_panel.add(submit_Button);
-        submit_panel.add(signUp_Button);
-        submit_panel.add(message);
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        gbc.gridx = 1;
+        form_panel.add(submit_panel, gbc);
 
-        form_panel.add(username_label);
-        form_panel.add(username_TextField);
-        form_panel.add(password_label);
-        form_panel.add(password_PasswordField);
-        form_panel.add(forgot_password_Button);
-        form_panel.add(submit_panel);
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        form_panel.add(message, gbc);
     }
 
     @Override
@@ -110,11 +128,7 @@ public class LoginForm implements ActionListener{
         String username = username_TextField.getText().trim();
         String password = String.valueOf(password_PasswordField.getPassword()).trim();
 
-        if (authorization.verifyUser(username, password)) {
-            message.setText("Login successful!");
-        } else {
-            message.setText("Invalid username or password");
-        }
+        message.setText(authorization.verifyUser(username, password) ? "Successful" : "Sorry, something has gone wrong");
     }
 
     public static void main(String[] args) {
