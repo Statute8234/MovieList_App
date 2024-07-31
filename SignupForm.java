@@ -1,20 +1,17 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.security.SecureRandom;
 
-public class SignupForm implements ActionListener{
+public class SignupForm implements ActionListener {
     private JPanel panel;
     private JLabel message;
-    private JTextField fullName_TextField;
-    private JTextField username_TextField;
-    private JTextField email_TextField;
-    private JPasswordField password_TextField;
+    private JTextField fullName_TextField, username_TextField, email_TextField;
+    private JPasswordField password_PasswordField;
     private LoginForm loginForm;
     private Authorization authorization;
 
-    public SignupForm (JPanel panel, LoginForm loginForm, Authorization authorization) {
+    public SignupForm(JPanel panel, LoginForm loginForm, Authorization authorization) {
         this.panel = panel;
         this.loginForm = loginForm;
         this.authorization = authorization;
@@ -25,52 +22,65 @@ public class SignupForm implements ActionListener{
         panel.revalidate();
         panel.repaint();
 
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        panel.setBackground(Color.LIGHT_GRAY);
+        panel.setLayout(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel fullName_Label = new JLabel("Full Name: ");
-        fullName_TextField = new JTextField();
-        JLabel username_label = new JLabel("Username: ");
-        username_TextField = new JTextField();
-        JLabel email_label = new JLabel("Email: ");
-        email_TextField = new JTextField();
-        JLabel password_label = new JLabel("Password: ");
-        password_TextField = new JPasswordField();
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel title = new JLabel("Sign up");
+        title.setFont(new Font("Arial", Font.BOLD, 25));
+        gbc.gridx = 1;
+        formPanel.add(title, gbc);
+
+        String[] labels = {"Full Name:", "Username:", "Email:", "Password:"};
+        JTextField[] fields = {fullName_TextField = new JTextField(15), username_TextField = new JTextField(15), 
+                               email_TextField = new JTextField(15), password_PasswordField = new JPasswordField(15)};
+
+        for (int i = 0; i < labels.length; i++) {
+            gbc.gridx = 0;
+            gbc.gridy = i + 1;
+            formPanel.add(new JLabel(labels[i]), gbc);
+
+            gbc.gridx = 1;
+            formPanel.add(fields[i], gbc);
+        }
 
         JButton generatePassword_button = new JButton("Generate Password");
-        generatePassword_button.setPreferredSize(new Dimension(200, 30));
         generatePassword_button.setFocusable(false);
         generatePassword_button.addActionListener(this);
+        gbc.gridx = 0;
+        gbc.gridy = labels.length + 1;
+        gbc.gridwidth = 2;
+        formPanel.add(generatePassword_button, gbc);
 
-        JPanel submit_panel = new JPanel();
-        submit_panel.setAlignmentX(0);
-        submit_panel.setBackground(Color.LIGHT_GRAY);
-        
-        JButton signUp_Button = new JButton("Sign up");
-        signUp_Button.setFocusable(false);
-        signUp_Button.addActionListener(this);
+        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        submitPanel.setBackground(Color.WHITE);
+        String[] buttonLabels = {"Sign up", "Back"};
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setFocusable(false);
+            button.addActionListener(this);
+            submitPanel.add(button);
+        }
 
-        JButton back_Button = new JButton("Back");
-        back_Button.setFocusable(false);
-        back_Button.addActionListener(this);
+        gbc.gridy++;
+        gbc.gridx = 1;
+        formPanel.add(submitPanel, gbc);
 
         message = new JLabel("");
-        message.setForeground(Color.YELLOW);
+        message.setForeground(Color.RED);
 
-        submit_panel.add(signUp_Button);
-        submit_panel.add(back_Button);
-        submit_panel.add(message);
+        gbc.gridy++;
+        gbc.anchor = GridBagConstraints.CENTER;
+        formPanel.add(message, gbc);
 
-        panel.add(fullName_Label);
-        panel.add(fullName_TextField);
-        panel.add(username_label);
-        panel.add(username_TextField);
-        panel.add(email_label);
-        panel.add(email_TextField);
-        panel.add(password_label);
-        panel.add(password_TextField);
-        panel.add(generatePassword_button);
-        panel.add(submit_panel);
+        panel.add(formPanel);
     }
 
     @Override
@@ -79,11 +89,8 @@ public class SignupForm implements ActionListener{
         if (command.equals("Sign up")) {
             handleSignup();
         } else if (command.equals("Generate Password")) {
-            int passwordLength = 12;
-            PasswordGenerator randomPassword = new PasswordGenerator();
-            String rnd = randomPassword.generateRandomPassword(12);
-            password_TextField.setText(rnd);
-            message.setText(rnd);
+            password_PasswordField.setText(PasswordGenerator.generateRandomPassword(12));
+            message.setText(password_PasswordField.getText());
         } else if (command.equals("Back")) {
             loginForm.loginScreen();
         }
@@ -93,39 +100,31 @@ public class SignupForm implements ActionListener{
         String fullName = fullName_TextField.getText().trim();
         String username = username_TextField.getText().trim();
         String email = email_TextField.getText().trim();
-        String password = new String(password_TextField.getPassword()).trim();
+        String password = new String(password_PasswordField.getPassword()).trim();
 
-        // Simple validation checks
         if (fullName.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             message.setText("All fields are required.");
         } else if (!email.contains("@")) {
             message.setText("Please enter a valid email address.");
         } else if (password.length() < 12) {
-            message.setText("Password must be at least 12s characters long.");
+            message.setText("Password must be at least 12 characters long.");
         } else if (authorization.userExists(username)) {
-            message.setText("Invalid username");
+            message.setText("Username already exists.");
         } else {
-            // successful signup
             authorization.addUser(username, password, email, fullName);
             message.setText("Welcome, " + fullName + "!");
         }
     }
 
-    private class PasswordGenerator {
+    private static class PasswordGenerator {
         private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
         private static final SecureRandom random = new SecureRandom();
 
         public static String generateRandomPassword(int length) {
-            if (length <= 0) {
-                throw new IllegalArgumentException("Password length must be greater than zero");
-            }
-
             StringBuilder password = new StringBuilder(length);
             for (int i = 0; i < length; i++) {
-                int index = random.nextInt(CHARACTERS.length());
-                password.append(CHARACTERS.charAt(index));
+                password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
             }
-
             return password.toString();
         }
     }
